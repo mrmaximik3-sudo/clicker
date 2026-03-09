@@ -791,3 +791,38 @@ body {
     background: rgba(255,215,0,0.3);
     border-radius: 4px;
 }
+
+/* Затемнённые улучшения */
+.item-card.disabled {
+    opacity: 0.4; /* Прозрачность 40% */
+    filter: grayscale(80%); /* Чёрно-белое */
+    pointer-events: none; /* Нельзя нажать */
+    cursor: not-allowed; /* Курор "нельзя" */
+}
+
+.skin-toggle-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0 15px;
+}
+
+.skin-toggle-btn {
+    width: 100%;
+    background: rgba(100, 100, 255, 0.25);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(100, 100, 255, 0.3);
+    color: #aac0ff;
+    font-weight: 600;
+    font-size: 0.9rem;
+    padding: 14px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: inset 0 -4px 0 rgba(0,0,0,0.3);
+}
+
+.skin-toggle-btn:active {
+    transform: scale(0.97);
+    background: rgba(100, 100, 255, 0.4);
+}
