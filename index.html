@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Бабло майнинг - кликер</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container" id="gameContainer">
+        <!-- Шапка с валютой -->
+        <div class="currency-panel">
+            <div class="currency-item">
+                <img src="img/Бабло.png" class="currency-icon" alt="💰">
+                <span class="currency-value" id="babloAmount">0</span>
+            </div>
+            <div class="currency-item">
+                <img src="img/Алмазы.png" class="currency-icon" alt="💎">
+                <span class="currency-value" id="crystalsAmount">0</span>
+            </div>
+        </div>
+
+        <!-- Кнопка клика -->
+        <div class="click-wrapper">
+            <div class="click-button" id="clickBtn">
+                <img id="clickerImage" src="img/1.png" alt="click">
+            </div>
+            <div class="click-power" id="clickPowerDisplay">+1</div>
+        </div>
+
+        <!-- Прогресс уровня -->
+        <div class="level-container">
+            <div class="level-header">
+                <span class="level-label">УРОВЕНЬ</span>
+                <span class="level-value" id="levelDisplay">1</span>
+            </div>
+            <div class="progress-track">
+                <div class="progress-fill" id="levelProgress" style="width: 0%;"></div>
+                <span class="progress-text" id="levelProgressText">0/200</span>
+            </div>
+        </div>
+
+        <!-- Навигация -->
+        <div class="nav-container">
+            <div class="nav-item active" data-tab="shop">МАГАЗИН</div>
+            <div class="nav-item" data-tab="cases">КЕЙСЫ</div>
+            <div class="nav-item" data-tab="skins">СКИНЫ</div>
+        </div>
+
+        <!-- Вкладка МАГАЗИН -->
+        <div id="shopTab" class="tab-content active">
+            <div class="items-grid" id="shopContainer"></div>
+        </div>
+
+        <!-- Вкладка КЕЙСЫ -->
+        <div id="casesTab" class="tab-content">
+            <div class="inventory-status">
+                <span>КЕЙСЫ В ИНВЕНТАРЕ:</span>
+                <span class="inventory-count" id="caseInventoryCount">0</span>
+            </div>
+            
+            <div class="inventory-cases-list" id="inventoryCasesList">
+                <div class="empty-inventory">Нет кейсов в инвентаре</div>
+            </div>
+            
+            <div class="section-divider">
+                <span>МАГАЗИН КЕЙСОВ</span>
+            </div>
+            
+            <div class="items-grid" id="casesContainer"></div>
+            
+            <!-- Рулетка -->
+            <div class="wheel-container" id="wheelContainer" style="display: none;">
+                <div class="wheel" id="wheel">
+                    <div class="wheel-segment" style="transform: rotate(0deg)">+10</div>
+                    <div class="wheel-segment" style="transform: rotate(45deg)">+25</div>
+                    <div class="wheel-segment" style="transform: rotate(90deg)">+50</div>
+                    <div class="wheel-segment" style="transform: rotate(135deg)">+100</div>
+                    <div class="wheel-segment" style="transform: rotate(180deg)">СКИН</div>
+                    <div class="wheel-segment" style="transform: rotate(225deg)">+200</div>
+                    <div class="wheel-segment" style="transform: rotate(270deg)">+500</div>
+                    <div class="wheel-segment" style="transform: rotate(315deg)">+1000</div>
+                </div>
+                <div class="wheel-pointer">▼</div>
+            </div>
+            <div class="case-result" id="caseResult"></div>
+        </div>
+
+        <!-- Вкладка СКИНЫ -->
+        <div id="skinsTab" class="tab-content">
+            <div class="items-grid" id="skinsContainer"></div>
+        </div>
+        <div class="skin-toggle-container">
+    <button class="skin-toggle-btn" id="toggleSkinBtn">ОТКЛЮЧИТЬ СКИН</button>
+</div>
+
+        <!-- Кнопка очистки и ТГ -->
+        <div class="footer">
+            <button class="reset-button" id="resetBtn">ОЧИСТИТЬ ВСЁ</button>
+            <a href="https://t.me/maks_88ggg" class="tg-link" target="_blank">ТГ СОЗДАТЕЛЯ</a>
+        </div>
+    </div>
+
+    <!-- Уведомление -->
+    <div class="notification" id="caseNotification">Вам выпал кейс!</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
