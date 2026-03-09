@@ -18,10 +18,10 @@ let gameState = {
 const clickImages = [
     { max: 1000, url: 'img/1.png' },
     { max: 10000, url: 'img/2.png' },
-    { max: 50000, url: 'img/3.png' },
-    { max: 100000, url: 'img/4.png' },
-    { max: 1000000, url: 'img/5.png' },
-    { max: 100000000, url: 'img/6.png' },
+    { max: 100000, url: 'img/3.png' },
+    { max: 1000000, url: 'img/4.png' },
+    { max: 10000000, url: 'img/5.png' },
+    { max: 1000000000, url: 'img/6.png' },
     { max: Infinity, url: 'img/6.png' }
 ];
 
@@ -432,4 +432,5 @@ document.addEventListener('DOMContentLoaded', () => {
     window.buyCase = buyCase;
     window.openCaseFromInventory = openCaseFromInventory;
     window.buySkin = buySkin;
+
 });
