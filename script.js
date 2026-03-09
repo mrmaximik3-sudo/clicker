@@ -9,6 +9,7 @@ let gameState = {
     totalClicks: 0,
     currentSkin: 'default',
     ownedSkins: ['default'],
+    skinEnabled: true,
     upgrades: Array(15).fill(0),
     cases: 0,
     caseInventory: []
@@ -117,15 +118,13 @@ function showNotification(text) {
 
 // ===== ПРИМЕНЕНИЕ СКИНА =====
 function applySkin(skinId) {
-    const container = document.getElementById('gameContainer');
-    container.className = 'game-container';
+    gameState.currentSkin = skinId;
     
-    if (skinId !== 'default') {
-        const skin = skinsData.find(s => s.id === skinId);
-        if (skin) {
-            container.classList.add(skin.class);
-        }
+    // Если скины включены, применяем визуально
+    if (gameState.skinEnabled) {
+        updateSkinDisplay();
     }
+    saveGame();
 }
 
 // ===== ПОКУПКА УЛУЧШЕНИЯ =====
@@ -137,6 +136,10 @@ function buyUpgrade(id) {
         gameState.bablo -= upgrade.price;
         gameState.clickPower += upgrade.power;
         gameState.upgrades[id] = (gameState.upgrades[id] || 0) + 1;
+
+        // ===== НОВАЯ СТРОКА: повышаем цену на 50% =====
+        upgradesData[id].price = Math.floor(upgrade.price * 1.5);
+
         gameState.exp += upgrade.power;
         
         while (gameState.exp >= gameState.expToNext) {
@@ -235,13 +238,19 @@ function buySkin(id) {
     if (!skin) return;
     
     if (gameState.ownedSkins.includes(id)) {
+        // Просто надеваем (меняем текущий скин)
         gameState.currentSkin = id;
-        applySkin(id);
+        if (gameState.skinEnabled) {
+            updateSkinDisplay();
+        }
     } else if (gameState.crystals >= skin.price) {
+        // Покупаем новый скин
         gameState.crystals -= skin.price;
         gameState.ownedSkins.push(id);
         gameState.currentSkin = id;
-        applySkin(id);
+        if (gameState.skinEnabled) {
+            updateSkinDisplay();
+        }
     }
     updateUI();
     saveGame();
@@ -293,19 +302,22 @@ function updateUI() {
     
     // Магазин
     let shopHtml = '';
-    upgradesData.forEach((up, index) => {
-        shopHtml += `
-            <div class="item-card" onclick="buyUpgrade(${index})">
-                <img src="${up.icon}" class="item-icon">
-                <div class="item-name">${up.name}</div>
-                <div class="item-price">
-                    <img src="img/Бабло.png" style="width:16px;height:16px;">
-                    ${formatNumber(up.price)}
-                </div>
-                <div style="font-size:0.7rem; color:#9aaec3;">ур.${gameState.upgrades[index] || 0}</div>
+upgradesData.forEach((up, index) => {
+    // Проверяем, хватает ли денег
+    const canBuy = gameState.bablo >= up.price;
+    
+    shopHtml += `
+        <div class="item-card ${canBuy ? '' : 'disabled'}" onclick="buyUpgrade(${index})">
+            <img src="${up.icon}" class="item-icon">
+            <div class="item-name">${up.name}</div>
+            <div class="item-price">
+                <img src="img/Бабло.png" style="width:16px;height:16px;">
+                ${formatNumber(up.price)}
             </div>
-        `;
-    });
+            <div style="font-size:0.7rem; color:#9aaec3;">ур.${gameState.upgrades[index] || 0}</div>
+        </div>
+    `;
+});
     document.getElementById('shopContainer').innerHTML = shopHtml;
     
     // Кейсы в магазине
@@ -365,6 +377,25 @@ function updateUI() {
         `;
     });
     document.getElementById('skinsContainer').innerHTML = skinsHtml;
+
+        // 👆 ЗДЕСЬ ЗАКАНЧИВАЕТСЯ ОТРИСОВКА СКИНОВ 👆
+    
+    // ===== НОВЫЙ КОД: ОБНОВЛЕНИЕ ТЕКСТА КНОПКИ СКИНА =====
+    // Находим кнопку переключения скинов
+    const toggleBtn = document.getElementById('toggleSkinBtn');
+    
+    // Если кнопка найдена на странице
+    if (toggleBtn) {
+        // Проверяем: если скины отключены ИЛИ выбран обычный скин
+        if (!gameState.skinEnabled || gameState.currentSkin === 'default') {
+            toggleBtn.textContent = 'ВКЛЮЧИТЬ СКИН';  // Текст для выключенного состояния
+        } else {
+            toggleBtn.textContent = 'ОТКЛЮЧИТЬ СКИН';  // Текст для включенного состояния
+        }
+    }
+    // ===== КОНЕЦ НОВОГО КОДА =====
+    
+    // ДРУГОЙ КОД, ЕСЛИ ЕСТЬ...
 }
 
 // ===== СОХРАНЕНИЕ =====
@@ -378,6 +409,10 @@ function loadGame() {
         try {
             const loaded = JSON.parse(saved);
             gameState = {...gameState, ...loaded};
+            // Проверяем, есть ли переменная skinEnabled (для старых сохранений)
+            if (gameState.skinEnabled === undefined) {
+                gameState.skinEnabled = true;
+            }
         } catch (e) {}
     }
 }
@@ -432,5 +467,35 @@ document.addEventListener('DOMContentLoaded', () => {
     window.buyCase = buyCase;
     window.openCaseFromInventory = openCaseFromInventory;
     window.buySkin = buySkin;
-
 });
+
+// ===== ПЕРЕКЛЮЧЕНИЕ СКИНА (ВКЛ/ВЫКЛ) =====
+function toggleSkin() {
+    gameState.skinEnabled = !gameState.skinEnabled;
+    updateSkinDisplay();
+    saveGame();
+}
+
+// ===== ОБНОВЛЕНИЕ ОТОБРАЖЕНИЯ СКИНА =====
+function updateSkinDisplay() {
+    const container = document.getElementById('gameContainer');
+    const toggleBtn = document.getElementById('toggleSkinBtn');
+    
+    // Если скины отключены ИЛИ выбран обычный скин
+    if (!gameState.skinEnabled || gameState.currentSkin === 'default') {
+        container.className = 'game-container'; // Убираем все классы скинов
+        if (toggleBtn) toggleBtn.textContent = 'ВКЛЮЧИТЬ СКИН';
+    } else {
+        // Применяем текущий скин
+        const skin = skinsData.find(s => s.id === gameState.currentSkin);
+        if (skin) {
+            container.className = 'game-container ' + skin.class;
+        }
+        if (toggleBtn) toggleBtn.textContent = 'ОТКЛЮЧИТЬ СКИН';
+    }
+}
+// Кнопка переключения скина
+const toggleBtn = document.getElementById('toggleSkinBtn');
+if (toggleBtn) {
+    toggleBtn.addEventListener('click', toggleSkin);
+}
