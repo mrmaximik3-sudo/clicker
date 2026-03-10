@@ -42,9 +42,10 @@
 
         <!-- Навигация -->
         <div class="nav-container">
-            <div class="nav-item active" data-tab="shop">МАГАЗИН</div>
+            <div class="nav-item active" data-tab="shop">МАГАЗ</div>
             <div class="nav-item" data-tab="cases">КЕЙСЫ</div>
             <div class="nav-item" data-tab="skins">СКИНЫ</div>
+            <div class="nav-item" data-tab="roulette">КАЗИНО</div>
         </div>
 
         <!-- Вкладка МАГАЗИН -->
@@ -88,10 +89,53 @@
 
         <!-- Вкладка СКИНЫ -->
         <div id="skinsTab" class="tab-content">
-            <div class="items-grid" id="skinsContainer"></div>
+    <div class="items-grid" id="skinsContainer"></div>
+    
+    <!-- Кнопка управления скинами -->
+    <div class="skin-toggle-container">
+        <button class="skin-toggle-btn" id="toggleSkinBtn">ОТКЛЮЧИТЬ СКИН</button>
+    </div>
+</div>
+
+<!-- Вкладка РУЛЕТКА -->
+<div id="rouletteTab" class="tab-content">
+    <div class="roulette-container">
+        <p style="text-align:center"><span style="color:#dddddd">Это не реальное казино, вы ставите ставку на красное, черное, зеленое и получаете либо джекпот&nbsp;либо проигрышь. Деньги виртуальные и их нельзя вывести на БК.</span></p>
+        
+        <!-- Колесо -->
+        <div class="wheel-wrapper">
+            <canvas id="rouletteWheel" width="300" height="300"></canvas>
+            <div class="wheel-pointer">▼</div>
         </div>
-        <div class="skin-toggle-container">
-    <button class="skin-toggle-btn" id="toggleSkinBtn">ОТКЛЮЧИТЬ СКИН</button>
+        
+        <!-- Управление -->
+        <div class="roulette-controls">
+            <!-- Ввод ставки -->
+<div class="bet-section">
+    <div class="bet-label">Ставка:</div>
+    
+    <!-- Поле ввода (отдельно) -->
+    <input type="number" id="betInput" class="bet-input" value="100" min="1" step="1">
+    
+    <!-- Кнопка МАКС (отдельно, на всю ширину) -->
+    <button class="bet-max-btn" id="betMaxBtn">ВСЁ ВАШЕ БАБЛО</button>
+</div>
+            
+            <!-- Выбор цвета -->
+            <div class="color-selector">
+                <button class="color-btn red" data-color="red">КРАСНОЕ</button>
+                <button class="color-btn black" data-color="black">ЧЁРНОЕ</button>
+                <button class="color-btn green" data-color="green">ЗЕЛЁНОЕ</button>
+            </div>
+            
+            <!-- Кнопка запуска -->
+            <button class="spin-btn" id="spinRouletteBtn">КРУТИТЬ</button>
+        </div>
+        
+        <!-- Результат и история -->
+        <div class="roulette-result" id="rouletteResult"></div>
+        <div class="roulette-history" id="rouletteHistory"></div>
+    </div>
 </div>
 
         <!-- Кнопка очистки и ТГ -->
