@@ -539,3 +539,237 @@ const toggleBtn = document.getElementById('toggleSkinBtn');
 if (toggleBtn) {
     toggleBtn.addEventListener('click', toggleSkin);
 }
+
+// ===== РУЛЕТКА =====
+let rouletteAngle = 0;
+let currentBet = 100;
+let selectedColor = 'red';
+let spinAnimation = null;
+
+// Сектора рулетки (европейская)
+const rouletteNumbers = [
+    { number: 0, color: 'green' },
+    { number: 32, color: 'red' }, { number: 15, color: 'black' }, { number: 19, color: 'red' },
+    { number: 4, color: 'black' }, { number: 21, color: 'red' }, { number: 2, color: 'black' },
+    { number: 25, color: 'red' }, { number: 17, color: 'black' }, { number: 34, color: 'red' },
+    { number: 6, color: 'black' }, { number: 27, color: 'red' }, { number: 13, color: 'black' },
+    { number: 36, color: 'red' }, { number: 11, color: 'black' }, { number: 30, color: 'red' },
+    { number: 8, color: 'black' }, { number: 23, color: 'red' }, { number: 10, color: 'black' },
+    { number: 5, color: 'red' }, { number: 24, color: 'black' }, { number: 16, color: 'red' },
+    { number: 33, color: 'black' }, { number: 1, color: 'red' }, { number: 20, color: 'black' },
+    { number: 14, color: 'red' }, { number: 31, color: 'black' }, { number: 9, color: 'red' },
+    { number: 22, color: 'black' }, { number: 18, color: 'red' }, { number: 29, color: 'black' },
+    { number: 7, color: 'red' }, { number: 28, color: 'black' }, { number: 12, color: 'red' },
+    { number: 35, color: 'black' }, { number: 3, color: 'red' }, { number: 26, color: 'black' }
+];
+
+// Отрисовка колеса
+function drawRouletteWheel(angle) {
+    const canvas = document.getElementById('rouletteWheel');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    const width = 300;
+    const height = 300;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radius = 140;
+    
+    ctx.clearRect(0, 0, width, height);
+    
+    const sectorCount = rouletteNumbers.length;
+    const sectorAngle = (Math.PI * 2) / sectorCount;
+    
+    for (let i = 0; i < sectorCount; i++) {
+        const startAngle = i * sectorAngle + angle;
+        const endAngle = (i + 1) * sectorAngle + angle;
+        
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+        ctx.closePath();
+        
+        // Цвет сектора
+        if (rouletteNumbers[i].color === 'red') {
+            ctx.fillStyle = '#d32f2f';
+        } else if (rouletteNumbers[i].color === 'black') {
+            ctx.fillStyle = '#212121';
+        } else {
+            ctx.fillStyle = '#2e7d32';
+        }
+        
+        ctx.fill();
+        ctx.strokeStyle = '#ffd966';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        
+        // Номер сектора
+        ctx.save();
+        ctx.translate(centerX, centerY);
+        ctx.rotate(startAngle + sectorAngle / 2);
+        ctx.textAlign = 'center';
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 12px Arial';
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 4;
+        ctx.fillText(rouletteNumbers[i].number, radius * 0.7, 0);
+        ctx.restore();
+    }
+    
+    // Центральный круг
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 30, 0, Math.PI * 2);
+    ctx.fillStyle = '#1a1e24';
+    ctx.shadowBlur = 10;
+    ctx.fill();
+    ctx.strokeStyle = '#ffd966';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+}
+
+// Инициализация рулетки
+function initRoulette() {
+    drawRouletteWheel(rouletteAngle);
+    
+    // Поле ввода ставки
+const betInput = document.getElementById('betInput');
+if (betInput) {
+    betInput.addEventListener('input', () => {
+        let value = parseInt(betInput.value);
+        if (isNaN(value) || value < 1) value = 1;
+        currentBet = value;
+        
+        // Убираем активный класс с быстрых кнопок
+        document.querySelectorAll('.bet-quick').forEach(b => b.classList.remove('active'));
+    });
+}
+
+// Кнопка МАКС
+document.getElementById('betMaxBtn').addEventListener('click', () => {
+    const maxBet = gameState.bablo;
+    betInput.value = maxBet;
+    currentBet = maxBet;
+    document.querySelectorAll('.bet-quick').forEach(b => b.classList.remove('active'));
+});
+
+// Быстрые кнопки
+document.querySelectorAll('.bet-quick').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.bet-quick').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        let value = parseInt(btn.dataset.bet);
+        // Преобразуем K в тысячи
+        if (btn.textContent.includes('K')) {
+            value = parseInt(btn.dataset.bet) * 1000;
+        }
+        
+        betInput.value = value;
+        currentBet = value;
+    });
+});
+    
+    // Кнопки цветов
+    document.querySelectorAll('.color-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            selectedColor = btn.dataset.color;
+        });
+    });
+    
+    // Кнопка кручения
+    const spinBtn = document.getElementById('spinRouletteBtn');
+    if (spinBtn) {
+        spinBtn.addEventListener('click', spinRoulette);
+    }
+}
+
+// Кручение рулетки
+function spinRoulette() {
+    const spinBtn = document.getElementById('spinRouletteBtn');
+    if (spinBtn.disabled) return;
+    
+    // Проверка баланса
+    if (gameState.bablo < currentBet) {
+        document.getElementById('rouletteResult').textContent = 'Недостаточно бабла!';
+        return;
+    }
+    
+    // Списываем ставку
+    gameState.bablo -= currentBet;
+    spinBtn.disabled = true;
+    
+    // Параметры анимации
+    const spins = 8 + Math.random() * 5;
+    const targetAngle = rouletteAngle + spins * Math.PI * 2 + Math.random() * Math.PI * 2;
+    const startAngle = rouletteAngle;
+    const startTime = Date.now();
+    const duration = 3000;
+    
+    function animate() {
+        const now = Date.now();
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Замедление в конце
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        rouletteAngle = startAngle + (targetAngle - startAngle) * easeOut;
+        
+        drawRouletteWheel(rouletteAngle);
+        
+        if (progress < 1) {
+            requestAnimationFrame(animate);
+        } else {
+            spinBtn.disabled = false;
+            
+            // Определяем результат
+            const normalized = (rouletteAngle % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+            const sectorSize = (Math.PI * 2) / rouletteNumbers.length;
+            const sectorIndex = Math.floor(normalized / sectorSize);
+            const result = rouletteNumbers[sectorIndex];
+            
+            let winAmount = 0;
+            if (result.color === selectedColor) {
+                if (selectedColor === 'green') {
+                    winAmount = currentBet * 35;
+                } else {
+                    winAmount = currentBet * 2;
+                }
+                gameState.bablo += winAmount;
+                document.getElementById('rouletteResult').textContent = `ДЖЕКПОТ: ${formatNumber(winAmount)}! Выпало ${result.number}`;
+            } else {
+                document.getElementById('rouletteResult').textContent = `Проигрыш... Выпало ${result.number}`;
+            }
+            
+            // Добавляем в историю
+            addToHistory(result.color);
+            
+            // Обновляем UI
+            updateUI();
+            saveGame();
+        }
+    }
+    
+    requestAnimationFrame(animate);
+}
+
+// Добавление в историю
+function addToHistory(color) {
+    const history = document.getElementById('rouletteHistory');
+    const item = document.createElement('div');
+    item.className = `history-item ${color}`;
+    
+    if (color === 'red') item.textContent = '🔴';
+    else if (color === 'black') item.textContent = '⚫';
+    else item.textContent = '🟢';
+    
+    history.prepend(item);
+    
+    if (history.children.length > 10) {
+        history.removeChild(history.lastChild);
+    }
+}
+
+// Запускаем рулетку
+initRoulette();
