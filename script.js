@@ -120,7 +120,28 @@ function showNotification(text) {
 function applySkin(skinId) {
     gameState.currentSkin = skinId;
     
-    // Если скины включены, применяем визуально
+    // Меняем классы на body для фона
+    const body = document.body;
+    
+    // Удаляем все классы фонов
+    body.classList.remove('default-bg', 'skin-tiger-bg', 'skin-night-bg', 'skin-rainbow-bg');
+    
+    // Добавляем класс фона в зависимости от скина
+    if (skinId === 1) {
+        body.classList.add('skin-tiger-bg');
+        console.log('Применён фон тигра');
+    } else if (skinId === 2) {
+        body.classList.add('skin-night-bg');
+        console.log('Применён фон ночи');
+    } else if (skinId === 3) {
+        body.classList.add('skin-rainbow-bg');
+        console.log('Применён фон радуги');
+    } else {
+        body.classList.add('default-bg');
+        console.log('Обычный фон');
+    }
+    
+    // Если скины включены, применяем и к контейнеру
     if (gameState.skinEnabled) {
         updateSkinDisplay();
     }
@@ -258,7 +279,7 @@ function buySkin(id) {
 
 // ===== ОЧИСТКА =====
 function resetGame() {
-    if (confirm('ВСЁ будет удалено без возможности восстановления!!!')) {
+    if (confirm('ВСЁ будет удалено без возможности восстановления!')) {
         gameState = {
             bablo: 0,
             crystals: 0,
@@ -269,10 +290,15 @@ function resetGame() {
             totalClicks: 0,
             currentSkin: 'default',
             ownedSkins: ['default'],
+            skinEnabled: true,
             upgrades: Array(15).fill(0),
             cases: 0,
             caseInventory: []
         };
+        
+        // Убираем фон с body
+        document.body.classList.remove('skin-tiger-bg', 'skin-night-bg', 'skin-rainbow-bg');
+        
         applySkin('default');
         updateUI();
         saveGame();
@@ -480,16 +506,30 @@ function toggleSkin() {
 function updateSkinDisplay() {
     const container = document.getElementById('gameContainer');
     const toggleBtn = document.getElementById('toggleSkinBtn');
+    const body = document.body;
     
-    // Если скины отключены ИЛИ выбран обычный скин
+    // Удаляем все классы фонов
+    body.classList.remove('default-bg', 'skin-tiger-bg', 'skin-night-bg', 'skin-rainbow-bg');
+    
     if (!gameState.skinEnabled || gameState.currentSkin === 'default') {
-        container.className = 'game-container'; // Убираем все классы скинов
+        // Если скины выключены - обычный фон
+        container.className = 'game-container';
+        body.classList.add('default-bg');
         if (toggleBtn) toggleBtn.textContent = 'ВКЛЮЧИТЬ СКИН';
     } else {
         // Применяем текущий скин
         const skin = skinsData.find(s => s.id === gameState.currentSkin);
         if (skin) {
             container.className = 'game-container ' + skin.class;
+            
+            // Добавляем фон на body
+            if (gameState.currentSkin === 1) {
+                body.classList.add('skin-tiger-bg');
+            } else if (gameState.currentSkin === 2) {
+                body.classList.add('skin-night-bg');
+            } else if (gameState.currentSkin === 3) {
+                body.classList.add('skin-rainbow-bg');
+            }
         }
         if (toggleBtn) toggleBtn.textContent = 'ОТКЛЮЧИТЬ СКИН';
     }
