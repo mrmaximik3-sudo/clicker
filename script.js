@@ -12,7 +12,9 @@ let gameState = {
     skinEnabled: true,
     upgrades: Array(15).fill(0),
     cases: 0,
-    caseInventory: []
+    caseInventory: [],
+    luckMultiplier: 1,        
+    autoClickerActive: false
 };
 
 // ===== ИЗОБРАЖЕНИЯ КНОПКИ =====
@@ -44,6 +46,50 @@ const upgradesData = [
     { id: 13, name: 'Властелин монет', price: 800000000, power: 8000000, icon: 'img/Усил.png' },
     { id: 14, name: 'Бабло-бог', price: 2500000000, power: 25000000, icon: 'img/Усил.png' },
     { id: 15, name: 'Хранитель денег', price: 25000000000, power: 250000000, icon: 'img/Усил.png' }
+];
+
+// ===== КРИСТАЛЬНЫЕ УЛУЧШЕНИЯ =====
+const crystalUpgradesData = [
+    { 
+        id: 100, 
+        name: 'Авто-кликер', 
+        price: 50, 
+        icon: 'https://i.pinimg.com/originals/8a/ae/d3/8aaed30809b564ac41c9bf41dfd728f0.png?nii=t',
+        description: 'Автоматически кликает раз в 5 секунд',
+        color: 'blue'
+    },
+    { 
+        id: 101, 
+        name: 'Удвоитель удачи', 
+        price: 30, 
+        icon: 'https://cdn-icons-png.flaticon.com/128/1635/1635281.png',
+        description: 'Шанс выпадения кейсов x2 на 5 минут',
+        color: 'blue'
+    },
+    { 
+        id: 102, 
+        name: 'Кристальный буст', 
+        price: 100, 
+        icon: 'https://cdn-icons-png.flaticon.com/128/4066/4066358.png',
+        description: '+50% к силе клика на 1 минуту',
+        color: 'blue'
+    },
+    { 
+        id: 103, 
+        name: 'Мгновенный уровень', 
+        price: 200, 
+        icon: 'https://cdn-icons-png.flaticon.com/128/3133/3133655.png',
+        description: '+500 опыта мгновенно',
+        color: 'blue'
+    },
+    { 
+        id: 104, 
+        name: 'Кристальный кейс', 
+        price: 10000, 
+        icon: 'https://mydrop.pro/images/zoloto/bril.png',
+        description: 'Гарантированный редкий скин',
+        color: 'blue'
+    }
 ];
 
 // ===== КЕЙСЫ =====
@@ -293,7 +339,9 @@ function resetGame() {
             skinEnabled: true,
             upgrades: Array(15).fill(0),
             cases: 0,
-            caseInventory: []
+            caseInventory: [],
+            luckMultiplier: 1,
+            autoClickerActive: false
         };
         
         // Убираем фон с body
@@ -345,6 +393,24 @@ upgradesData.forEach((up, index) => {
     `;
 });
     document.getElementById('shopContainer').innerHTML = shopHtml;
+
+        // КРИСТАЛЬНЫЙ МАГАЗИН
+    let crystalHtml = '';
+    crystalUpgradesData.forEach(item => {
+        const canBuy = gameState.crystals >= item.price;
+        crystalHtml += `
+            <div class="item-card ${canBuy ? '' : 'disabled'}" onclick="buyCrystalUpgrade(${item.id})">
+                <img src="${item.icon}" class="item-icon">
+                <div class="item-name">${item.name}</div>
+                <div class="item-price">
+                    <img src="img/Алмазы.png" style="width:16px;height:16px;">
+                    ${item.price}
+                </div>
+                <div style="font-size:0.7rem; color:#9aaec3; padding:0 5px;">${item.description}</div>
+            </div>
+        `;
+    });
+    document.getElementById('crystalShopContainer').innerHTML = crystalHtml;
     
     // Кейсы в магазине
     let casesHtml = '';
@@ -448,20 +514,33 @@ document.addEventListener('DOMContentLoaded', () => {
     loadGame();
     updateUI();
     applySkin(gameState.currentSkin);
+
+    // 👇 ПРИНУДИТЕЛЬНО АКТИВИРУЕМ ВКЛАДКУ МАГАЗИНА
+    document.querySelector('.nav-item[data-tab="shop"]').classList.add('active');
+    document.getElementById('shopTab').classList.add('active');
+    
+    // 👇 И ОБНОВЛЯЕМ UI
+    updateUI();
+
+    // 👇 ДОБАВЬ ЭТО - второй вызов через 300ms
+    setTimeout(() => {
+        updateUI();  // второй вызов (точно сработает)
+    }, 300);
     
     document.getElementById('clickBtn').addEventListener('click', () => {
         gameState.bablo += gameState.clickPower;
         gameState.totalClicks++;
         gameState.exp += 1;
         
-        if (Math.random() < 0.002) {
-            gameState.cases++;
-            gameState.caseInventory.push({
-                id: 0,
-                name: 'Обычный кейс'
-            });
-            showNotification('Вам выпал кейс!');
-        }
+        // Шанс на кейс с учётом множителя удачи
+if (Math.random() < 0.002 * (gameState.luckMultiplier || 1)) {
+    gameState.cases++;
+    gameState.caseInventory.push({
+        id: 0,
+        name: 'Обычный кейс'
+    });
+    showNotification('Вам выпал кейс!');
+}
         
         while (gameState.exp >= gameState.expToNext) {
             gameState.level++;
@@ -482,6 +561,8 @@ document.addEventListener('DOMContentLoaded', () => {
             item.classList.add('active');
             const tab = item.dataset.tab;
             document.getElementById(tab + 'Tab').classList.add('active');
+            // 👇 ВОТ ЭТО ДОБАВЬ - обновляем интерфейс при переключении
+        updateUI();
         });
     });
     
@@ -736,7 +817,9 @@ function spinRoulette() {
                 } else {
                     winAmount = currentBet * 2;
                 }
-                gameState.bablo += winAmount;
+                // Учитываем множитель удачи (если он активен)
+                const luckBonus = gameState.luckMultiplier || 1;
+                gameState.bablo += winAmount * luckBonus;
                 document.getElementById('rouletteResult').textContent = `ДЖЕКПОТ: ${formatNumber(winAmount)}! Выпало ${result.number}`;
             } else {
                 document.getElementById('rouletteResult').textContent = `Проигрыш... Выпало ${result.number}`;
@@ -773,3 +856,99 @@ function addToHistory(color) {
 
 // Запускаем рулетку
 initRoulette();
+
+window.buyCrystalUpgrade = buyCrystalUpgrade;
+
+// ===== ПОКУПКА ЗА КРИСТАЛЛЫ =====
+function buyCrystalUpgrade(id) {
+    const item = crystalUpgradesData.find(i => i.id === id);
+    if (!item) return;
+    
+    if (gameState.crystals >= item.price) {
+        gameState.crystals -= item.price;
+        
+        if (id === 100) { // Авто-кликер
+            startAutoClicker();
+            showNotification('Авто-кликер запущен на 1 минуту!');
+        } 
+        else if (id === 101) { // Удвоитель удачи
+            gameState.luckMultiplier = 2;
+            showNotification('Удача увеличена на 5 минут!');
+            setTimeout(() => {
+                gameState.luckMultiplier = 1;
+            }, 300000); // 5 минут
+        } 
+        else if (id === 102) { // Кристальный буст
+            gameState.clickPower = Math.floor(gameState.clickPower * 1.5);
+            showNotification('Сила клика +50% на 1 минуту!');
+            setTimeout(() => {
+                gameState.clickPower = Math.floor(gameState.clickPower / 1.5);
+            }, 60000);
+        } 
+        else if (id === 103) { // Мгновенный уровень
+            gameState.exp += 500;
+            while (gameState.exp >= gameState.expToNext) {
+                gameState.level++;
+                gameState.exp -= gameState.expToNext;
+                gameState.expToNext = Math.floor(gameState.expToNext * 1.8);
+            }
+            showNotification('Уровень повышен!');
+        } 
+        else if (id === 104) { // Кристальный кейс
+            openCrystalCase();
+        }
+        
+        updateUI();
+        saveGame();
+    } else {
+        showNotification('Недостаточно кристаллов!');
+    }
+}
+
+// ===== ОТКРЫТИЕ КРИСТАЛЬНОГО КЕЙСА =====
+function openCrystalCase() {
+    const availableSkins = skinsData.filter(s => !gameState.ownedSkins.includes(s.id));
+    
+    if (availableSkins.length > 0) {
+        const randomSkin = availableSkins[Math.floor(Math.random() * availableSkins.length)];
+        gameState.ownedSkins.push(randomSkin.id);
+        showNotification(`Получен скин: ${randomSkin.name}!`);
+    } else {
+        gameState.crystals += 100;
+        showNotification('У вас уже все скины, +100 кристаллов');
+    }
+}
+
+// ===== АВТО-КЛИКЕР =====
+function startAutoClicker() {
+    if (gameState.autoClickerActive) return;
+    
+    gameState.autoClickerActive = true;
+    let clicksLeft = 12; // 12 кликов за минуту (раз в 5 секунд)
+    
+    const interval = setInterval(() => {
+        if (clicksLeft <= 0) {
+            clearInterval(interval);
+            gameState.autoClickerActive = false;
+            return;
+        }
+        
+        // Авто-клик
+        gameState.bablo += gameState.clickPower;
+        gameState.totalClicks++;
+        gameState.exp += 1;
+        
+        // Шанс на кейс с учётом множителя удачи
+        if (Math.random() < 0.002 * gameState.luckMultiplier) {
+            gameState.cases++;
+            gameState.caseInventory.push({
+                id: 0,
+                name: 'Обычный кейс'
+            });
+            showNotification('Авто-кейс!');
+        }
+        
+        clicksLeft--;
+        updateUI();
+    }, 5000); // Каждые 5 секунд
+}
