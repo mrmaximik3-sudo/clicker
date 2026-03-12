@@ -1301,3 +1301,47 @@ body.skin-rainbow-bg::before {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* Заголовки разделов магазина */
+.shop-section {
+    margin-bottom: 30px;
+}
+
+.shop-section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    padding: 5px 15px;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.section-currency-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+}
+
+.shop-section-title span {
+    color: #ffd966;
+    font-weight: 700;
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+/* Запрет контекстного меню на всех изображениях */
+img {
+    -webkit-touch-callout: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+}
+
+/* Для картинок, которые не являются кнопками */
+.item-card img,
+.shop-section-title img,
+.currency-icon {
+    pointer-events: none !important;
+}
